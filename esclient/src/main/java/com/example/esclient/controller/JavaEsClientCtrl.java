@@ -36,7 +36,7 @@ import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 public class JavaEsClientCtrl {
 
     @Autowired
-    // springboot集成
+    // springboot集成TransportClient
     public ElasticsearchTemplate elasticsearchTemplate;
 
     @Qualifier("getTransportClient")
