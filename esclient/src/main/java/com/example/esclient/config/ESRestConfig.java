@@ -11,6 +11,7 @@ import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.SSLContexts;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.ResourceUtils;
@@ -35,6 +36,9 @@ import java.security.cert.CertificateException;
 @Configuration
 public class ESRestConfig {
 
+    @Value("${spring.data.elasticsearch.cluster-nodes}")
+    private String clusterNodes;
+
     private HostnameVerifier TRUSTED_VERIFIER = null;
 
     @Bean
@@ -57,7 +61,11 @@ public class ESRestConfig {
             credentialsProvider.setCredentials(AuthScope.ANY,
                     new UsernamePasswordCredentials("elastic", "123456"));
 
-            RestClientBuilder builder = RestClient.builder(new HttpHost("127.0.0.1", 9200, "https"))
+            // 配置hostName
+            String[] split = clusterNodes.split(",");
+            String[] split1 = split[0].split(":");
+
+            RestClientBuilder builder = RestClient.builder(new HttpHost(split1[0], 9200, "https"))
                     .setHttpClientConfigCallback(new RestClientBuilder.HttpClientConfigCallback() {
                         @Override
                         public HttpAsyncClientBuilder customizeHttpClient(HttpAsyncClientBuilder httpClientBuilder) {

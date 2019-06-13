@@ -55,7 +55,8 @@ public class JavaEsClientCtrl {
     @RequestMapping(value = "test5", method = RequestMethod.GET)
     public String test5() throws NoSuchAlgorithmException, KeyManagementException, IOException {
         String body = null;
-        HttpGet httpGet = new HttpGet("https://127.0.0.1:9200/test1/doc/a001");
+        HttpGet httpGet = new HttpGet("http://127.0.0.1:9200/test1/doc/a001");
+//        HttpGet httpGet = new HttpGet("https://192.168.8.205:9200/log_useroperate_topic-201905/information/430b338f45ec46cdaddc77970cdc721f");
         HttpResponse response = httpClient.execute(httpGet);
         //获取结果实体
         HttpEntity entity = response.getEntity();
@@ -77,6 +78,7 @@ public class JavaEsClientCtrl {
         try {
             // 查询
             Request request = new Request("GET", "/test1/doc/a004");
+//            Request request = new Request("GET", "/log_useroperate_topic-201905/information/1a44c110dc3e467b9b58ef3c47d464ab");
 //            request.setJsonEntity("{\n" +
 //                    "\t\"first_name\": \"宝贝\",\n" +
 //                    "\t\"last_name\": \"按住她\",\n" +
@@ -100,9 +102,12 @@ public class JavaEsClientCtrl {
      */
     @RequestMapping(value = "/test2", method = RequestMethod.GET)
     public String test2() {
+//        SearchQuery searchQuery = new NativeSearchQueryBuilder()
+//                .withQuery(matchQuery("LogTypeName", "用户操作日志")).build();
         SearchQuery searchQuery = new NativeSearchQueryBuilder()
                 .withQuery(matchQuery("first_name", "宝贝")).build();
 
+        // template需要pojo映射索引，此处没列举
         return elasticsearchTemplate.queryForList(searchQuery, Test1.class).toString();
     }
 
@@ -118,11 +123,36 @@ public class JavaEsClientCtrl {
             //builder.must(QueryBuilders.termQuery("age", 23));
             SearchResponse response = transportClient.prepareSearch("test1")//可添加多个index，逗号隔开
 //            SearchResponse response = transportClient.prepareSearch("log_useroperate_topic-201905")//可添加多个index，逗号隔开
-                    .setTypes("doc")//可添加多个type，逗号隔开
+                    .setTypes("doc","information")//可添加多个type，逗号隔开
                     .setQuery(builder)
 //                    .setFetchSource(new String[]{"first_name", "last_name", "age"}, null)//自定义返回的字段
                     .setFrom(0)
                     .setSize(5)
+                    .setExplain(true)//按查询匹配度排序
+                    .get();
+            StringBuilder sb = new StringBuilder();
+            for (SearchHit hit : response.getHits()) {
+                sb.append(hit.getSourceAsString());
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    @RequestMapping(value = "/test4", method = RequestMethod.GET)
+    public String test4(/*@RequestParam("id") String id*/) {
+        try {
+
+            BoolQueryBuilder builder = new BoolQueryBuilder();
+            //builder.must(QueryBuilders.termQuery("age", 23));
+            SearchResponse response = transportClient.prepareSearch("kafkatest")//可添加多个index，逗号隔开
+//            SearchResponse response = transportClient.prepareSearch("log_useroperate_topic-201905")//可添加多个index，逗号隔开
+                    .setTypes("doc","information")//可添加多个type，逗号隔开
+                    .setQuery(builder)
+//                    .setFetchSource(new String[]{"first_name", "last_name", "age"}, null)//自定义返回的字段
+                    .setFrom(0)
+                    .setSize(10)
                     .setExplain(true)//按查询匹配度排序
                     .get();
             StringBuilder sb = new StringBuilder();

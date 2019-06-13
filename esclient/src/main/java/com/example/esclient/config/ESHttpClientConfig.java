@@ -4,10 +4,16 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.SSLContexts;
 import org.springframework.context.annotation.Bean;
@@ -63,15 +69,15 @@ public class ESHttpClientConfig {
                 new UsernamePasswordCredentials("elastic", "123456"));
 
         // 设置协议http和https对应的处理socket链接工厂的对象
-//        Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
-//                .register("http", PlainConnectionSocketFactory.INSTANCE)
-//                .register("https", new SSLConnectionSocketFactory(sslcontext))
-//                .build();
-//        PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
+        Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
+                .register("http", PlainConnectionSocketFactory.INSTANCE)
+                .register("https", new SSLConnectionSocketFactory(sslcontext))
+                .build();
+        PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
 
         //创建自定义的httpclient对象
         CloseableHttpClient client = HttpClients.custom()
-                //.setConnectionManager(connManager)
+                .setConnectionManager(connManager)
                 .setDefaultCredentialsProvider(credentialsProvider)
                 .setSSLHostnameVerifier(new HostnameVerifier() {
                     public boolean verify(String hostname, SSLSession session) {
