@@ -1,5 +1,7 @@
 package com.example.esclient.kafka.Receiver;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,10 +11,9 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Created by Majg on 2019-06-12
@@ -24,42 +25,30 @@ public class KafkaReceiver {
     @Autowired
     public ElasticsearchTemplate elasticsearchTemplate;
 
-    @KafkaListener(topics = {"JGMa_kafka"}, groupId = "${kafk.aconsumer.group-id}")
+    //@KafkaListener(topics = {"JGMa_kafka"}, groupId = "${kafk.aconsumer.group-id}")
     public void listen(List<ConsumerRecord<?, ?>> record, Acknowledgment ack) {
-
-
-//        for (ConsumerRecord i : record) {
-//            Optional<?> kafkaMessage = Optional.ofNullable(i.value());
-//            if (kafkaMessage.isPresent()) {
-//
-//                Object message = kafkaMessage.get();
-//
-//                log.info("----------------- record =" + record);
-//                log.info("------------------ message =" + message);
-//            }
-//        }
-
-
 
         try {
             final int batch_size = record.size();
-            List<IndexQuery> queries = new ArrayList<>(batch_size);
-
-            log.warn("一共消费到{}条消息",batch_size);
+            List<IndexQuery> queries = new ArrayList<>();
 
             for (ConsumerRecord i : record) {
                 Optional<?> kafkaMessage = Optional.ofNullable(i.value());
                 if (kafkaMessage.isPresent()) {
 
-                    Object message = kafkaMessage.get();
+                    Object message1 = kafkaMessage.get();
 
-                    log.info("----------------- record =" + record);
-                    log.info("------------------ message =" + message);
+                    final JSONObject message = JSON.parseObject(message1.toString());
+                    //添加存入es时间
+                    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    String format = dateFormat.format(new Date());
+                    message.put("CreateTime", format);
+                    dateFormat = null;
 
                     IndexQuery indexQuery = new IndexQuery();
                     indexQuery.setIndexName("kafkatest");
                     indexQuery.setType("doc");
-                    indexQuery.setId(UUID.randomUUID().toString());
+                    //indexQuery.setId(UUID.randomUUID().toString());
                     indexQuery.setSource(message.toString());
                     queries.add(indexQuery);
                 }
@@ -67,11 +56,12 @@ public class KafkaReceiver {
             }
             //es批量保存
             elasticsearchTemplate.bulkIndex(queries);
-
+            log.info("一共消费了{}条数据，存储了{}条数据",batch_size,queries.size());
             //确认已经消费
-            ack.acknowledge();
+            //ack.acknowledge();
 
         } catch (Exception e) {
+            log.error("es批量存储失败");
             e.printStackTrace();
         }
     }

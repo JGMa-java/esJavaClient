@@ -22,14 +22,16 @@ public class KafkaSender {
     //发送消息方法
     public void send() {
 
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        for(int i = 0;i<3000;i++){
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-        Message message = new Message();
-        message.setId(System.currentTimeMillis());
-        message.setMsg("消息内容：" + simpleDateFormat.format(new Date()));
-        message.setSendTime(new Date());
-        log.info("sender已发送信息。。。");
-        kafkaTemplate.send("JGMa_kafka", JSON.toJSONString(message));
+            Message message = new Message();
+            message.setId(System.currentTimeMillis());
+            message.setMsg("消息内容：" + i);
+            message.setSendTime(new Date());
+            log.info("sender已发送信息。。。");
+            kafkaTemplate.send("JGMa_kafka", JSON.toJSONString(message));
+        }
     }
 
 }

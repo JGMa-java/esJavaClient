@@ -55,7 +55,7 @@ public class JavaEsClientCtrl {
     @RequestMapping(value = "test5", method = RequestMethod.GET)
     public String test5() throws NoSuchAlgorithmException, KeyManagementException, IOException {
         String body = null;
-        HttpGet httpGet = new HttpGet("http://127.0.0.1:9200/test1/doc/a001");
+        HttpGet httpGet = new HttpGet("https://127.0.0.1:9200/test1/doc/a001");
 //        HttpGet httpGet = new HttpGet("https://192.168.8.205:9200/log_useroperate_topic-201905/information/430b338f45ec46cdaddc77970cdc721f");
         HttpResponse response = httpClient.execute(httpGet);
         //获取结果实体
