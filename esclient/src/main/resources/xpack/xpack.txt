@@ -1,0 +1,18 @@
+激活xpack 
+    \elasticsearch-6.5.0\modules\x-pack-core 替换 ，重启服务
+
+手动生成xpack密码
+    elasticsearch-setup-passwords interactive
+
+为Elasticearch集群创建一个证书颁发机构：
+    以PKCS#12格式生成：elasticsearch-certutil ca
+    以PEM格式格式生成：elasticsearch-certutil ca - -pem
+
+为Elasticearch集群每个节点生成证书和私钥：
+    以PKCS#12格式生成：elasticsearch-certutil cert --ca elastic-stack-ca.p12
+    以PEM格式格式生成：elasticsearch-certutil cert --pem
+
+其他https加密等，见官网：
+    https://www.elastic.co/guide/en/elasticsearch/reference/6.6/configuring-tls.html#node-certificates
+java客户端与安全性：
+    https://www.elastic.co/guide/en/elastic-stack-overview/6.6/java-clients.html
