@@ -8,9 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
-import org.springframework.util.ResourceUtils;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -20,47 +18,19 @@ import java.net.UnknownHostException;
  **/
 @Configuration
 public class ESTransportConfig {
-    @Value("${spring.data.elasticsearch.cluster-name}")
+    @Value("${valib_srv.es_name:elasticsearch}")
     private String clusterName;
 
-    @Value("${spring.data.elasticsearch.cluster-nodes}")
+    @Value("${valib_srv.transport_es_nodes:127.0.0.1:9300}")
     private String clusterNodes;
 
-    @Bean
-    public ElasticsearchTemplate getEsTemplate() {
+    @Value("${valib_srv.is_SSL_es:false}")
+    private Boolean is_ssl_es;
 
-        try {
-            return new ElasticsearchTemplate(getTransportClient());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
+    @Value("${valib_srv.certPath:C:\\certs\\elastic-certificates.p12}")
+    private String certPath;
 
-
-//    @Bean
-//    //pem忽略证书验证
-//    public TransportClient getTransportClient() throws FileNotFoundException, UnknownHostException {
-//        TransportClient client = new PreBuiltXPackTransportClient(Settings.builder()
-//                .put("cluster.name", clusterName)
-//                .put("xpack.security.user", "elastic:123456")
-//                .put("xpack.security.enabled", true)
-//                .put("xpack.ssl.certificate_authorities", "D:\\develop\\elasticsearch-6.5.0-code\\elasticsearch-6.5.0\\config\\certs\\certificate-bundle\\ca\\ca.crt")
-//                .put("xpack.ssl.key", "D:\\develop\\elasticsearch-6.5.0-code\\elasticsearch-6.5.0\\config\\certs\\certificate-bundle\\instance\\instance.key")
-//                .put("xpack.ssl.certificate", "D:\\develop\\elasticsearch-6.5.0-code\\elasticsearch-6.5.0\\config\\certs\\certificate-bundle\\instance\\instance.crt")
-//                .put("xpack.security.transport.ssl.verification_mode", "certificate")
-//                .put("xpack.security.transport.ssl.enabled", "true")
-//                .build());
-//        String[] split = clusterNodes.split(",");
-//        for (String s : split) {
-//            String[] split1 = s.split(":");
-//            int port = Integer.parseInt(split1[1]);
-//            client.addTransportAddress(new TransportAddress(InetAddress.getByName(split1[0]), port));
-//        }
-//        return client;
-//    }
-    @Bean
-    //pkcs12
+    @Bean(name = "sslTransportClient")
     public TransportClient getTransportClient() throws FileNotFoundException {
         try {
             PreBuiltXPackTransportClient packTransportClient = new PreBuiltXPackTransportClient(settings());
@@ -78,22 +48,27 @@ public class ESTransportConfig {
         }
     }
 
-    //pkcs12
     private Settings settings() throws FileNotFoundException {
+        if (is_ssl_es) {
+            Settings.Builder builder = Settings.builder();
+            builder.put("cluster.name", clusterName);
+            builder.put("xpack.security.user", "elastic:2019");
+            builder.put("xpack.security.enabled", true);
+            builder.put("xpack.security.transport.ssl.keystore.path", certPath);
+            builder.put("xpack.security.transport.ssl.truststore.path", certPath);
+            builder.put("xpack.security.transport.ssl.verification_mode", "certificate");
+            builder.put("xpack.security.transport.ssl.enabled", true);
+            builder.put("thread_pool.search.size", 10);//增加线程池个数，暂时设为10
+            return builder.build();
+        } else {
+            Settings.Builder builder = Settings.builder();
+            return builder.build();
 
-        File file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "elastic-certificates.p12");
-        String absolutePath = file.getAbsolutePath();
-        Settings.Builder builder = Settings.builder();
-        builder.put("cluster.name", clusterName);
-        builder.put("xpack.security.user", "elastic:123456");
-        builder.put("xpack.security.enabled", true);
-
-        builder.put("xpack.security.transport.ssl.keystore.path", absolutePath);
-        builder.put("xpack.security.transport.ssl.truststore.path", absolutePath);
-        builder.put("xpack.security.transport.ssl.verification_mode", "certificate");
-
-        builder.put("xpack.security.transport.ssl.enabled", true);
-        return builder.build();
+        }
     }
 
+    @Bean(name = "elasticsearchTemplate")
+    public ElasticsearchTemplate getElasticSearchTemplate() throws Exception {
+        return new ElasticsearchTemplate(getTransportClient());
+    }
 }

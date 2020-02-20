@@ -39,7 +39,7 @@ public class JavaEsClientCtrl {
     // springboot集成TransportClient
     public ElasticsearchTemplate elasticsearchTemplate;
 
-    @Qualifier("getTransportClient")
+    @Qualifier("sslTransportClient")
     @Autowired
     // es 9300端口
     public TransportClient transportClient;

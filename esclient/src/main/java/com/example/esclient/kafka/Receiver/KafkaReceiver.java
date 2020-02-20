@@ -25,6 +25,13 @@ public class KafkaReceiver {
     @Autowired
     public ElasticsearchTemplate elasticsearchTemplate;
 
+    @KafkaListener(topics = "${dps.valib.kafka.topic:valib}", groupId = "${dps.valib.kafka.groupId.elasticsearch:es_valib}")
+    public void listenTl(List<ConsumerRecord<?, ?>> records, Acknowledgment ack) {
+
+        System.out.println("共接收到消息："+records.size());
+    }
+
+
     //@KafkaListener(topics = {"JGMa_kafka"}, groupId = "${kafk.aconsumer.group-id}")
     public void listen(List<ConsumerRecord<?, ?>> record, Acknowledgment ack) {
 
