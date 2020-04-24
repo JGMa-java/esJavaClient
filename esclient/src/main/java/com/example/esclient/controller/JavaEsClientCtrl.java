@@ -44,8 +44,7 @@ public class JavaEsClientCtrl {
     // es 9300端口
     public TransportClient transportClient;
 
-    @Autowired
-    // es 9200restful
+    @Autowired(required = false)
     public RestClient restClient;
 
     @Qualifier("EsHttpClient")

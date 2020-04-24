@@ -18,16 +18,16 @@ import java.net.UnknownHostException;
  **/
 @Configuration
 public class ESTransportConfig {
-    @Value("${valib_srv.es_name:elasticsearch}")
+    @Value("${app.es_name:elasticsearch}")
     private String clusterName;
 
-    @Value("${valib_srv.transport_es_nodes:127.0.0.1:9300}")
+    @Value("${app.transport_es_nodes:127.0.0.1:9300}")
     private String clusterNodes;
 
-    @Value("${valib_srv.is_SSL_es:false}")
+    @Value("${app.is_SSL_es:false}")
     private Boolean is_ssl_es;
 
-    @Value("${valib_srv.certPath:C:\\certs\\elastic-certificates.p12}")
+    @Value("${app.certPath:C:\\certs\\elastic-certificates.p12}")
     private String certPath;
 
     @Bean(name = "sslTransportClient")
